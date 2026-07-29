@@ -1,11 +1,13 @@
-import {createContext, ReactNode, useContext, useState} from "react";
+import {createContext, ReactNode, useContext, useEffect, useState} from "react";
 import {appAuth} from "../../firebase/firebase";
+import {createUserWithEmailAndPassword, signInWithEmailAndPassword, User as FirebaseUser} from "firebase/auth";
+import { updateProfile } from "firebase/auth";
 
 
 type UserInfo = {
     fullName: string;
     email: string;
-    password: string;
+    // idToken: string;
 }
 
 type User = UserInfo | null;
@@ -22,53 +24,47 @@ const AuthCxt = createContext<AuthCxtComponents>(null);
 
 
 export function AuthProvider({children}: { children: ReactNode }) {
-    const [user, setUser] = useState<User>(() => {
-        const saved = localStorage.getItem('curUser')
-        return saved ? JSON.parse(saved) : null
-    })
+    useEffect(() => {
+        const unsubscribe = appAuth.onAuthStateChanged(updateUser)
+        return unsubscribe
+    }, [])
 
-    function login(email: string, password: string) {
-        const raw = localStorage.getItem("users")
-        const usersInfo: UserInfo[] = raw ? JSON.parse(raw) : []
+    const [curUser, setCurUser] = useState<User>(null)
+    const [loading, setLoading] = useState<boolean>(true)
 
-        for (const userInfo of usersInfo) {
-            if (userInfo.email === email) {
-                if (userInfo.password === password) {
-                    setUser(userInfo)
-                    localStorage.setItem('curUser', JSON.stringify(userInfo))
-                    return
-                }
-                else throw new Error ("The password is wrong!")
-            }
+    function updateUser(user: FirebaseUser | null) {
+        setLoading(false)
+        if (!user) {
+            setCurUser(null)
+            return
         }
-        throw new Error ("Email does not exist!")
+        setCurUser({
+            email: user.email?? "",
+            fullName: user.displayName ?? "",
+            // idToken: await user.getIdToken() ?? ""
+        })
+        return
     }
 
-    function logout() {
-        localStorage.removeItem('curUser')
-        setUser(null)
+    const isAuthenticated = !!curUser
+
+    async function login(email: string, password: string) {
+        const cred = await signInWithEmailAndPassword(appAuth, email, password);
     }
 
-    function signup(fullName: string, email: string, password: string) {
-        const raw = localStorage.getItem("users")
-        const users: UserInfo[] = raw ? JSON.parse(raw) : []
-        const curUser: User = {fullName, email, password}
-
-        if (users && users.length != 0 && users.some(user => user.email === curUser.email)) {
-            throw new Error ("Email already exists!")
-        }
-        users.push(curUser)
-        setUser(curUser)
-
-        localStorage.setItem("users", JSON.stringify(users))
-        localStorage.setItem('curUser', JSON.stringify(curUser))
+    async function logout() {
+        const cred = await appAuth.signOut();
     }
 
-    const isAuthenticated = !!user
+    async function signup(fullName: string, email: string, password: string) {
+        const cred = await createUserWithEmailAndPassword(appAuth, email, password);
+        await updateProfile(cred.user, {displayName: fullName})
+    }
+
 
     return (
-        <AuthCxt.Provider value={{user, login, logout, signup, isAuthenticated}}>
-            {children}
+        <AuthCxt.Provider value={{user:curUser, login, logout, signup, isAuthenticated}}>
+            {!loading && children}
         </AuthCxt.Provider>
     )
 
@@ -79,7 +75,3 @@ export function useAuth() {
     if (!ctx) throw new Error("AuthCxt is null");
     return ctx
 }
-
-//
-// //TODO: inside auth provider: ....
-// const [loading, setLoading] = useState(false)
