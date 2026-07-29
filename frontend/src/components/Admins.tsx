@@ -1,4 +1,4 @@
-import {useAuth} from "./AuthContext";
+import {useAuth} from "../contexts/authContext/AuthContext";
 import {useNavigate} from "react-router-dom";
 import {Layout as AdminLayout, MenuCell, TableColumnProps, UserCell} from "./usersAdmins/Layout";
 import {Badge} from "@chakra-ui/react";

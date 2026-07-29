@@ -1,11 +1,10 @@
-import {useAuth} from "./AuthContext";
+import {useAuth} from "../contexts/authContext/AuthContext";
 import React, {useState} from "react";
 import PrivateRoute from "./PrivateRoute";
 import PublicRoute from "./PublicRoute";
 import {Toaster, toaster} from "./ui/toaster";
-import { Link as RouterLink } from "react-router-dom";
+import {Link as RouterLink} from "react-router-dom";
 import {
-
     Button,
     Card,
     Flex,
@@ -26,7 +25,6 @@ const initLoginData: LoginData = {
     email: "",
     pwd: "",
 }
-
 
 
 type LoginDataErrors = Partial<Record<keyof LoginData, string>>
@@ -80,42 +78,42 @@ export default function Login() {
     }
 
     return (
-            <Card.Root variant="elevated" size="md" w="100%" maxW="600px">
-                <Card.Header alignItems="center">
-                    <Card.Title textStyle="heading.large">
-                        Welcome
-                    </Card.Title>
-                    <Card.Description>
-                        Great to see you! Please enter your account details.
-                    </Card.Description>
-                </Card.Header>
+        <Card.Root variant="elevated" size="md" w="100%" maxW="600px">
+            <Card.Header alignItems="center">
+                <Card.Title textStyle="heading.large">
+                    Welcome
+                </Card.Title>
+                <Card.Description>
+                    Great to see you! Please enter your account details.
+                </Card.Description>
+            </Card.Header>
 
-                <Card.Body pt="40px">
-                    <VStack gap="24px" align="stretch">
-                        <Field.Root required invalid={!!errors.email}>
-                            <Input placeholder="Email" variant="outline" size="md"
-                                   value={logindata.email} onChange={(e) => (update("email", e.target.value))}/>
-                            <Field.ErrorText>{errors.email}</Field.ErrorText>
-                        </Field.Root>
+            <Card.Body pt="40px">
+                <VStack gap="24px" align="stretch">
+                    <Field.Root required invalid={!!errors.email}>
+                        <Input placeholder="Email" variant="outline" size="md"
+                               value={logindata.email} onChange={(e) => (update("email", e.target.value))}/>
+                        <Field.ErrorText>{errors.email}</Field.ErrorText>
+                    </Field.Root>
 
-                        <Field.Root required invalid={!!errors.pwd}>
-                            <PasswordInput placeholder="Password" variant="outline" size="md"
-                                           value={logindata.pwd} onChange={(e) => (update("pwd", e.target.value))}/>
-                            <Field.ErrorText>{errors.pwd}</Field.ErrorText>
-                        </Field.Root>
+                    <Field.Root required invalid={!!errors.pwd}>
+                        <PasswordInput placeholder="Password" variant="outline" size="md"
+                                       value={logindata.pwd} onChange={(e) => (update("pwd", e.target.value))}/>
+                        <Field.ErrorText>{errors.pwd}</Field.ErrorText>
+                    </Field.Root>
 
-                        <Button variant="action" onClick={() => (loginHandler(logindata))}> Login </Button>
-                    </VStack>
-                </Card.Body>
+                    <Button variant="action" onClick={() => (loginHandler(logindata))}> Login </Button>
+                </VStack>
+            </Card.Body>
 
-                <Card.Footer justifyContent="center">
-                    <Text textStyle="body.sm.footer">
-                        Don't have an account?
-                        <Text textDecoration="underline" asChild>
-                            <RouterLink to="/register"> Sign Up</RouterLink>
-                        </Text>
+            <Card.Footer justifyContent="center">
+                <Text textStyle="body.sm.footer">
+                    Don't have an account?
+                    <Text textDecoration="underline" asChild>
+                        <RouterLink to="/register"> Sign Up</RouterLink>
                     </Text>
-                </Card.Footer>
-            </Card.Root>
+                </Text>
+            </Card.Footer>
+        </Card.Root>
     )
 }

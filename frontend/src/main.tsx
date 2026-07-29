@@ -7,19 +7,19 @@ import Dashboard from "./components/Dashboard";
 import Products from "./components/Products";
 import Users from "./components/Users";
 import MainLayout from "./layouts/MainLayout"
-import {AuthProvider} from "./components/AuthContext";
+import {AuthProvider} from "./contexts/authContext/AuthContext";
 import PublicRoute from "./components/PublicRoute";
 import PrivateRoute from "./components/PrivateRoute";
-import {ChakraProvider} from "@chakra-ui/react";
+import {ChakraProvider, Flex} from "@chakra-ui/react";
 import {ThemeProvider} from "next-themes"
 import {system} from "./theme";
-// main.tsx
 import "inter-ui/inter.css";
 import "@fontsource/plus-jakarta-sans/500.css";       // ← 这两行必须保留
 import "@fontsource/plus-jakarta-sans/600.css";
 import Admins from "./components/Admins";
 import {ColorModeProvider} from "./components/ui/color-mode";
 import AuthLayout from "./layouts/AuthLayout";
+
 
 
 const router = createBrowserRouter([
@@ -56,5 +56,6 @@ ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
                 </AuthProvider>
             </ColorModeProvider>
         </ChakraProvider>
-    </React.StrictMode>,
+    </React.StrictMode>
 )
+

@@ -12,7 +12,7 @@ interface StatCardProps {
 
 export function StatCard({icon, value, change, label}: StatCardProps) {
     return (
-        <Flex layerStyle="surface.cardOutlined" gap="4" px="4" py="4">
+        <Flex layerStyle="surface.cardOutlined" gap="4" px="4" py="4" h="100%" w="100%" alignItems="center">
         <Circle size="40px" overflow="hidden" bg="bg.action">
             <Icon> {icon} </Icon>
         </Circle>

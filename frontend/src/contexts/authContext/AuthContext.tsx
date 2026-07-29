@@ -1,4 +1,6 @@
 import {createContext, ReactNode, useContext, useState} from "react";
+import {appAuth} from "../../firebase/firebase";
+
 
 type UserInfo = {
     fullName: string;
@@ -77,3 +79,7 @@ export function useAuth() {
     if (!ctx) throw new Error("AuthCxt is null");
     return ctx
 }
+
+//
+// //TODO: inside auth provider: ....
+// const [loading, setLoading] = useState(false)

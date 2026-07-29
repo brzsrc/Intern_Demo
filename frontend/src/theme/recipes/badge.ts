@@ -48,6 +48,7 @@ export const badgeRecipe = defineRecipe({
       subtle: {
         bg: "bg.scrim",
         color: "fg.inverted",
+        backdropFilter: "blur(4px)",
       },
     },
     size: {

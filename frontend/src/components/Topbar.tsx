@@ -1,7 +1,7 @@
 import {Box, Card, Circle, Flex, Icon, Menu, Portal, Text} from "@chakra-ui/react";
 import {ChevronDown, LogOut} from "lucide-react";
 import {UserCell} from "./usersAdmins/Layout";
-import {useAuth} from "./AuthContext";
+import {useAuth} from "../contexts/authContext/AuthContext";
 import {useNavigate} from "react-router-dom";
 import {useState} from "react";
 import {ColorModeButton} from "./ui/color-mode";
