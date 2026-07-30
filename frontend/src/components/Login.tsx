@@ -1,4 +1,4 @@
-import {useAuth} from "../contexts/authContext/AuthContext";
+import {useAuth} from "../contexts/AuthContext";
 import React, {useState} from "react";
 import PrivateRoute from "./PrivateRoute";
 import PublicRoute from "./PublicRoute";
@@ -15,6 +15,7 @@ import {
 } from "@chakra-ui/react"
 import {PasswordInput} from "./ui/password-input";
 import {useNavigate} from "react-router-dom";
+import {FcGoogle} from "react-icons/fc";
 
 interface LoginData {
     email: string,
@@ -103,6 +104,9 @@ export default function Login() {
                     </Field.Root>
 
                     <Button variant="action" onClick={() => (loginHandler(logindata))}> Login </Button>
+                    <Button onClick={auth.signUpWithGoogle} variant="outline" w="full">
+                        <FcGoogle/> Continue with Google
+                    </Button>
                 </VStack>
             </Card.Body>
 

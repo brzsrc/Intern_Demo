@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
 from pathlib import Path
+from corsheaders.defaults import default_headers
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -41,9 +42,11 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'accounts',
     'drf_spectacular',
+    "corsheaders",
 ]
 
 MIDDLEWARE = [
+    "corsheaders.middleware.CorsMiddleware",
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -51,6 +54,14 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+]
+
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:5173",
+]
+CORS_ALLOW_HEADERS = [
+    *default_headers,      # from corsheaders.defaults import default_headers
+    # Authorization 已在默认列表里,通常不用额外加
 ]
 
 ROOT_URLCONF = 'config.urls'
@@ -119,6 +130,11 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = 'static/'
+
+MEDIA_ROOT = BASE_DIR / 'media/'
+MEDIA_URL = "/media/"
+
+
 FIREBASE_PATH = Path(__file__).resolve().parent / 'firebase.json'
 
 SPECTACULAR_SETTINGS = {

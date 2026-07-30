@@ -1,7 +1,7 @@
 import {Box, Card, Circle, Flex, Icon, Menu, Portal, Text} from "@chakra-ui/react";
 import {ChevronDown, LogOut} from "lucide-react";
 import {UserCell} from "./usersAdmins/Layout";
-import {useAuth} from "../contexts/authContext/AuthContext";
+import {useAuth} from "../contexts/AuthContext";
 import {useNavigate} from "react-router-dom";
 import {useState} from "react";
 import {ColorModeButton} from "./ui/color-mode";
@@ -34,7 +34,7 @@ export default function Topbar() {
 
             <Flex justify="flex-end">
 
-                <UserCell name={auth.user.fullName} email={auth.user.email} avatar="/images/topbar/avatar.png"/>
+                <UserCell name={auth.user.fullName} email={auth.user.email} avatar={auth.user.avatar ?? "/images/topbar/avatar.png"}/>
                 {/*<UserCell name="Jane Cooper" email="janecooper@gmail.com" avatar="/images/topbar/avatar.png"/>*/}
 
             <Menu.Root>

@@ -31,10 +31,17 @@ class FirebaseAuthentication(authentication.BaseAuthentication):
             raise AuthenticationFailed("Firebase token invalid")
 
         uid = decoded_token.get("uid")
+        email = decoded_token.get("email")
+        if not email:
+            raise AuthenticationFailed("No email provided")
 
-        try:
-            user = User.objects.get(firebase_uid=uid)
-        except User.DoesNotExist:
-            raise AuthenticationFailed("User not registered, call /register first")
+        # try:
+        user, created = User.objects.get_or_create(firebase_uid=uid,
+                                                   defaults={"email": email, "name": decoded_token.get("name", "default username")})
+        # except User.DoesNotExist:
+        #     raise AuthenticationFailed("User not registered, call /register first")
+        if not created and not user.name and decoded_token.get("name"):
+            user.name = decoded_token.get("name")
+            user.save(update_fields=["name"])
 
         return (user, None)

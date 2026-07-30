@@ -50,7 +50,7 @@ export default function ListCard({title, list}: ListCardProps) {
 
             {list.map((item) => {
                     return (
-                        <Flex direction="column" justify="space-between">
+                        <Flex key={item.label} direction="column" justify="space-between">
                             <ListItem {...item}/>
                         </Flex>
                     )

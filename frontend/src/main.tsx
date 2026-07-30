@@ -7,7 +7,7 @@ import Dashboard from "./components/Dashboard";
 import Products from "./components/Products";
 import Users from "./components/Users";
 import MainLayout from "./layouts/MainLayout"
-import {AuthProvider} from "./contexts/authContext/AuthContext";
+import {AuthProvider} from "./contexts/AuthContext";
 import PublicRoute from "./components/PublicRoute";
 import PrivateRoute from "./components/PrivateRoute";
 import {ChakraProvider, Flex} from "@chakra-ui/react";

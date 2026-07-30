@@ -1,4 +1,4 @@
-import {useAuth} from "../contexts/authContext/AuthContext";
+import {useAuth} from "../contexts/AuthContext";
 import React, {useState} from "react";
 import PrivateRoute from "./PrivateRoute";
 import PublicRoute from "./PublicRoute";
@@ -17,6 +17,7 @@ import {
 import {PasswordInput} from "./ui/password-input";
 import {useNavigate} from "react-router-dom";
 import {isValidPhoneNumber} from "libphonenumber-js";
+import {FcGoogle} from "react-icons/fc";
 
 interface SignupData {
     fullName: string,
@@ -146,6 +147,9 @@ export default function Register() {
                         </Field.Root>
 
                         <Button variant="action" onClick={() => (signupHandler(signupData))}> Register </Button>
+                        <Button onClick={auth.signUpWithGoogle} variant="outline" w="full">
+                            <FcGoogle/> Continue with Google
+                        </Button>
                     </VStack>
                 </Card.Body>
 

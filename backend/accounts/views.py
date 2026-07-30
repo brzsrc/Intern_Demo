@@ -6,9 +6,15 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from accounts.models import Client, User, TodoList, TodoItem
 from accounts.permissions import IsAdmin
 from accounts.serializers import ClientSerializer, UserSerializer, TodoListSerializer, TodoItemSerializer, \
-    ListAssignSerializer, RegisterSerializer
+    ListAssignSerializer, RegisterSerializer, AuthSerializer
 from firebase_admin import auth
 from django.db.models import Q
+
+class AuthView(generics.RetrieveUpdateAPIView):
+    serializer_class = AuthSerializer
+    def get_object(self):
+        return self.request.user
+
 
 class RegisterView(generics.CreateAPIView):
     serializer_class = RegisterSerializer
@@ -132,7 +138,7 @@ class TodoItemViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         if self.request.user.is_admin:
             return TodoItem.objects.all()
-        return TodoList.objects.filter(list_within__owned_by=self.request.user)
+        return TodoItem.objects.filter(list_within__owned_by=self.request.user)
 
     def perform_create(self, serializer):
         if self.request.user.is_admin:
