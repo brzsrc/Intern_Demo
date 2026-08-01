@@ -1,7 +1,7 @@
 import {Box, Button, Flex, IconButton, Link, Menu, Portal, Text, useDisclosure} from "@chakra-ui/react";
 import {useLocation} from "react-router-dom";
 import { Link as RouterLink } from "react-router-dom";
-import {LayoutGrid, Package, Users, SquareUserRound} from "lucide-react";
+import {LayoutGrid, Package, Users, SquareUserRound, SquareTerminal} from "lucide-react";
 import {LuMenu, LuX} from "react-icons/lu";
 
 const navItems = [
@@ -25,6 +25,11 @@ const navItems = [
         path: "/admins",
         icon: <SquareUserRound/>
     },
+    {
+        label: "Console",
+        path: "/console",
+        icon: <SquareTerminal/>,
+    }
 ];
 
 export function NavMenu() {

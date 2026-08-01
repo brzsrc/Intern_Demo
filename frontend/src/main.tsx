@@ -3,23 +3,27 @@ import ReactDOM from 'react-dom/client'
 import {createBrowserRouter, Navigate, RouterProvider} from "react-router-dom";
 import Login from "./components/Login";
 import Register from "./components/Register";
-import Dashboard from "./components/Dashboard";
-import Products from "./components/Products";
-import Users from "./components/Users";
-import MainLayout from "./layouts/MainLayout"
+import Dashboard from "./components/intern_docs/dashboard/Dashboard";
+import Products from "./components/intern_docs/products/Products";
+import Users from "./components/intern_docs/usersAdmins/Users";
+import MainLayout from "./components/layouts/MainLayout"
 import {AuthProvider} from "./contexts/AuthContext";
 import PublicRoute from "./components/PublicRoute";
 import PrivateRoute from "./components/PrivateRoute";
 import {ChakraProvider, Flex} from "@chakra-ui/react";
-import {ThemeProvider} from "next-themes"
 import {system} from "./theme";
 import "inter-ui/inter.css";
 import "@fontsource/plus-jakarta-sans/500.css";       // ← 这两行必须保留
 import "@fontsource/plus-jakarta-sans/600.css";
-import Admins from "./components/Admins";
+import Admins from "./components/intern_docs/usersAdmins/Admins";
 import {ColorModeProvider} from "./components/ui/color-mode";
-import AuthLayout from "./layouts/AuthLayout";
-
+import AuthLayout from "./components/layouts/AuthLayout";
+import {ReactQueryDevtools} from '@tanstack/react-query-devtools';
+import {QueryClient, QueryClientProvider} from "@tanstack/react-query";
+import ConsoleLayout from "./components/layouts/ConsoleLayout";
+import {Users as ConsoleUsers} from "./components/console/Users";
+import {TodoLists} from "./components/console/TodoLists";
+import {TodoItems} from "./components/console/TodoItems";
 
 
 const router = createBrowserRouter([
@@ -29,8 +33,8 @@ const router = createBrowserRouter([
         element: <PublicRoute> <AuthLayout/> </PublicRoute>,
         children: [
             {path: "/", element: <Navigate to={"/login"} replace={true}/>},
-            {path: "/login", element:  <Login/> },
-            {path: "/register", element: <Register/> },
+            {path: "/login", element: <Login/>},
+            {path: "/register", element: <Register/>},
         ]
 
     },
@@ -43,17 +47,32 @@ const router = createBrowserRouter([
             {path: "/users", element: <Users/>},
             {path: "/admins", element: <Admins/>},
         ]
-    }
+    },
+    {
+        path: "/console",
+        element: <PrivateRoute> <ConsoleLayout/> </PrivateRoute>,
+        children: [
+            {index: true, element: <Navigate to="todoLists" replace/>},
+            {path: "users", element: <ConsoleUsers/>},
+            {path: "todoLists", element: <TodoLists/>},
+            {path: "todoLists/:listId", element: <TodoItems/>},
+        ]
+    },
 ])
+
+const queryClient = new QueryClient();
 
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
     <React.StrictMode>
         <ChakraProvider value={system}>
             {/*<ColorModeProvider attribute="class" disableTransitionOnChange forcedTheme="light">*/}
             <ColorModeProvider>
-                <AuthProvider>
-                    <RouterProvider router={router}/>
-                </AuthProvider>
+                <QueryClientProvider client={queryClient}>
+                    <AuthProvider>
+                        <RouterProvider router={router}/>
+                    </AuthProvider>
+                    <ReactQueryDevtools initialIsOpen={true}/>
+                </QueryClientProvider>
             </ColorModeProvider>
         </ChakraProvider>
     </React.StrictMode>

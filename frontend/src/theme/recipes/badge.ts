@@ -50,6 +50,10 @@ export const badgeRecipe = defineRecipe({
         color: "fg.inverted",
         backdropFilter: "blur(4px)",
       },
+      standard: {
+        bg: "bg.scrimSubtle",
+        color: "fg.muted",
+      },
     },
     size: {
       sm: { px: "1.5", py: "0.5", borderRadius: "sm" }, // 2px 6px

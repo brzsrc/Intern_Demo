@@ -10,8 +10,10 @@ from accounts.serializers import ClientSerializer, UserSerializer, TodoListSeria
 from firebase_admin import auth
 from django.db.models import Q
 
+
 class AuthView(generics.RetrieveUpdateAPIView):
     serializer_class = AuthSerializer
+
     def get_object(self):
         return self.request.user
 
@@ -20,6 +22,7 @@ class RegisterView(generics.CreateAPIView):
     serializer_class = RegisterSerializer
     permission_classes = [AllowAny]
     authentication_classes = []
+
     def perform_create(self, serializer):
         auth_header = self.request.META.get("HTTP_AUTHORIZATION")
         if not auth_header or not auth_header.startswith("Bearer "):
@@ -48,8 +51,6 @@ class RegisterView(generics.CreateAPIView):
         )
 
 
-
-
 # Create your views here.
 class UserViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = User.objects.all()
@@ -65,7 +66,6 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
         serializer = TodoListSerializer(assigned_lists, many=True)
         return Response(serializer.data)
 
-
     @action(detail=True, methods=['get'], permission_classes=[IsAuthenticated])
     def assigned_items(self, request, pk=None):
         instance = self.get_object()
@@ -79,12 +79,14 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
         serializer = TodoItemSerializer(assigned_items, many=True)
         return Response(serializer.data)
 
+
 class ClientViewSet(viewsets.ModelViewSet):
     serializer_class = ClientSerializer
     queryset = Client.objects.all()
 
     def get_queryset(self):
         return Client.objects.select_related("invited_by")
+
 
 class TodoListViewSet(viewsets.ModelViewSet):
     serializer_class = TodoListSerializer
@@ -96,7 +98,6 @@ class TodoListViewSet(viewsets.ModelViewSet):
         # return TodoList.objects.filter(
         # Q(owned_by=self.request.user) | Q(assigned_to=self.request.user))
         return TodoList.objects.filter(owned_by=self.request.user)
-
 
     def perform_create(self, serializer):
         if self.request.user.is_admin:
@@ -128,7 +129,10 @@ class TodoListViewSet(viewsets.ModelViewSet):
         instance = self.get_object()
         todoItems = instance.todoItems.all()
         serializer = TodoItemSerializer(todoItems, many=True)
-        return Response(serializer.data)
+        return Response({
+            "list_name": instance.name,
+            "items": serializer.data,
+        })
 
 
 class TodoItemViewSet(viewsets.ModelViewSet):
@@ -147,5 +151,3 @@ class TodoItemViewSet(viewsets.ModelViewSet):
             if serializer.validated_data["list_within"].owned_by_id != self.request.user.id:
                 raise PermissionDenied({"list_within": "You are not an admin, you can only add item in your own list."})
             serializer.save()
-
-

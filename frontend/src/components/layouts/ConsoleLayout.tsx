@@ -1,10 +1,10 @@
-import Topbar from "../components/Topbar";
-import Sidebar from "../components/Sidebar";
+import {Topbar} from "./Topbar";
+import Sidebar from "../console/Sidebar";
 import {Box, Flex} from "@chakra-ui/react";
 import {Outlet} from "react-router-dom";
 
 
-export default function MainLayout() {
+export default function ConsoleLayout() {
     return (
         <Flex minH="100vh" position="relative">
                 <Sidebar/>

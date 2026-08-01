@@ -23,6 +23,7 @@ export const semanticTokens = defineSemanticTokens({
       successSoft: { value: { base: "{colors.greenAlpha.10soft}", _dark: "rgba(85, 186, 73, 0.16)" } }, // 柔和成功底
       dangerSubtle: { value: { base: "{colors.redAlpha.10}", _dark: "rgba(249, 107, 107, 0.16)" } }, // 错误徽章底
       scrim: { value: { base: "{colors.neutral.10/20}", _dark: "{colors.neutral.10/20}" } }, // 图片遮罩,通用
+      scrimSubtle: { value: { base: "{colors.neutral.10/10}", _dark: "{colors.neutral.10/20}" } }, // 图片遮罩,通用
       yellowSubtle: { value: { base: "#FFEFE7", _dark: "rgba(255, 150, 0, 0.16)" } },
       active: { value: { base: "{colors.green.50}", _dark: "rgba(57, 223, 43, 0.12)" } }, // 侧边栏选中项
     },

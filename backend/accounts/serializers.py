@@ -47,7 +47,9 @@ class ListAssignSerializer(serializers.ModelSerializer):
 
 
 class TodoItemSerializer(serializers.ModelSerializer):
+    list_within_name = serializers.ReadOnlyField(source="list_within.name")
+
     class Meta:
         model = TodoItem
-        fields = "__all__"
+        fields = ["id", "name", "list_within", "content", "created_at", "updated_at", "list_within_name"]
         read_only_fields = ["id", "created_at", "updated_at"]

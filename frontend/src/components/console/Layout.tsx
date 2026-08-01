@@ -12,13 +12,11 @@ import {
     Badge,
     InputGroup, Input, Table, TableScrollArea, Menu, Portal, Dialog
 } from "@chakra-ui/react";
-import {Link as RouterLink} from "react-router-dom";
-import {Link} from "@chakra-ui/react"
 import {Plus} from "lucide-react";
 import {LuEllipsisVertical, LuSearch} from "react-icons/lu";
 import {ReactNode, useRef, useState} from "react";
-import {updateUserAvatar} from "../../queryOptions/queries";
 import {useAuth} from "../../contexts/AuthContext";
+import {updateUserAvatar} from "../../queryOptions/queries";
 
 
 export interface TableColumnProps<T> {
@@ -28,10 +26,11 @@ export interface TableColumnProps<T> {
 }
 
 export interface LayoutProps<T> {
-    title: string,
-    addLabel: string,
+    header: ReactNode,
+    // backLabel?: ReactNode,
     tableColumns: TableColumnProps<T>[],
     rows: T[],
+    placeholder: string
 }
 
 export function MenuCell(): {} {
@@ -43,7 +42,6 @@ export function MenuCell(): {} {
                 {/*</Button>*/}
             </Menu.Trigger>
 
-
             <Portal>
                 <Menu.Positioner>
                     <Menu.Content>
@@ -54,6 +52,20 @@ export function MenuCell(): {} {
     )
 }
 
+export function UserCellStatic({name, email, avatar}: { name: string, email: string, avatar: string }) {
+    return (
+        <Flex gap="3">
+            <Circle size="40px" overflow="hidden">
+                <Image src={avatar} alt="" aspectRatio="1" objectFit="cover"/>
+            </Circle>
+
+            <Flex direction="column">
+                <Text textStyle="body.sm.medium"> {name} </Text>
+                <Text fontSize="xs" color="fg.placeholder"> {email}</Text>
+            </Flex>
+        </Flex>
+    )
+}
 
 export function UserCell({name, email, avatar}: { name: string, email: string, avatar: string }) {
     const [open, setOpen] = useState(false);
@@ -84,7 +96,7 @@ export function UserCell({name, email, avatar}: { name: string, email: string, a
             <Flex gap="3">
                 <Circle size="40px" overflow="hidden" cursor="pointer"
                         onClick={() => setOpen(true)}>
-                    <img src={avatar} alt=""/>
+                    <Image src={avatar} alt="" aspectRatio="1" objectFit="cover"/>
                 </Circle>
 
                 <Flex direction="column">
@@ -106,9 +118,9 @@ export function UserCell({name, email, avatar}: { name: string, email: string, a
                     <Dialog.Positioner>
                         <Dialog.Content>
                             <Flex direction="column" alignItems="center" px={10} py={10} gap={4}>
-                                <Circle size="100px" overflow="hidden">
+                                <Square size="400px" overflow="hidden">
                                     <img src={avatar} alt=""/>
-                                </Circle>
+                                </Square>
                                 <Button onClick={() => fileInputRef.current?.click()}>
                                     Upload Profile Picture
                                 </Button>
@@ -123,17 +135,15 @@ export function UserCell({name, email, avatar}: { name: string, email: string, a
     )
 }
 
-export function Layout<T>({title, addLabel, tableColumns, rows}: LayoutProps<T>) {
+
+export function Layout<T>({header, tableColumns, rows, placeholder}: LayoutProps<T>) {
     return (
         <Flex direction="column" gap="6" p="6">
-            <Flex justify="space-between" alignItems="center">
-                <Text textStyle="body.2xl.medium.salt"> {title} </Text>
-                <Button> <Plus/>{addLabel} </Button>
-            </Flex>
+            {header}
 
             <Flex layerStyle="surface.cardOutlined" direction="column" gap={4} px={5} py={6}>
                 <InputGroup startElement={<LuSearch/>}>
-                    <Input w={400} h={12} textStyle="body.sm.regular" placeholder="Search by name or email"/>
+                    <Input w={400} h={12} textStyle="body.sm.regular" placeholder={placeholder}/>
                 </InputGroup>
 
                 <Table.ScrollArea borderWidth="1px" rounded="xl">
@@ -153,10 +163,11 @@ export function Layout<T>({title, addLabel, tableColumns, rows}: LayoutProps<T>)
 
                         <Table.Body>
                             {
+                                // if (rows)
                                 rows.map(row => (
                                     <Table.Row>
                                         {tableColumns.map(col => (
-                                            <Table.Cell>
+                                            <Table.Cell key={col.header}>
                                                 {col.render(row)}
                                             </Table.Cell>
                                         ))}

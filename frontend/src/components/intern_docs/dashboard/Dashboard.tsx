@@ -1,14 +1,14 @@
 import {Link, useNavigate} from "react-router-dom";
-import {useAuth} from "../contexts/AuthContext";
+import {useAuth} from "../../../contexts/AuthContext";
 import {Button, Flex, Grid, GridItem, Text, SimpleGrid, Image, Icon, Box} from "@chakra-ui/react";
 import {LuArchive, LuCoins, LuFileCheck, LuHandCoins, LuUser, LuUsers} from "react-icons/lu";
-import {StatCard, StatCardGhost} from "./dashboard/StatCard";
+import {StatCard, StatCardGhost} from "./StatCard";
 import {Plus} from "lucide-react";
-import {UserBarChart} from "./dashboard/BarChart";
-import RevenueLineChart from "./dashboard/LineChart";
-import ChartCard, {Period} from "./dashboard/ChartCard";
-import ListCard, {ListCardProps, ListProps} from "./dashboard/ListCard";
-import {AdminCard} from "./dashboard/AdminCard";
+import {UserBarChart} from "./BarChart";
+import RevenueLineChart from "./LineChart";
+import ChartCard, {Period} from "./ChartCard";
+import ListCard, {ListCardProps, ListProps} from "./ListCard";
+import {AdminCard} from "./AdminCard";
 
 
 export default function Dashboard() {

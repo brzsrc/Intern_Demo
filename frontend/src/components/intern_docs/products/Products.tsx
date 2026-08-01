@@ -1,9 +1,9 @@
-import {ProductProps} from "./products/types"
+import {ProductProps} from "./types"
 import {Circle, Flex, Grid, GridItem, Image, SimpleGrid, Text, Square, Button, Box, Badge} from "@chakra-ui/react";
 import {Link as RouterLink} from "react-router-dom";
 import {Link} from "@chakra-ui/react"
-import GridView from "./products/GridView";
-import ListView from "./products/ListView";
+import GridView from "./GridView";
+import ListView from "./ListView";
 import {useSearchParams} from "react-router-dom";
 
 
