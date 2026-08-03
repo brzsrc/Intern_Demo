@@ -11,11 +11,12 @@ class RegisterSerializer(serializers.ModelSerializer):
 
 
 class UserSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(write_only=True, required=False, min_length=6)
 
     class Meta:
         model = User
         fields = ["id", "email", "avatar", "name", "role",
-                  "is_active", "created_at", "updated_at"]
+                  "is_active", "created_at", "updated_at", "password"]
         read_only_fields = ["id", "created_at", "updated_at"]
 
 class AuthSerializer(serializers.ModelSerializer):
@@ -35,10 +36,14 @@ class ClientSerializer(serializers.ModelSerializer):
 
 
 class TodoListSerializer(serializers.ModelSerializer):
+    owned_by_name = serializers.ReadOnlyField(source="owned_by.name")
+    assigned_to_name = serializers.ReadOnlyField(source="assigned_to.name")
+    items_count = serializers.IntegerField(read_only=True)
+
     class Meta:
         model = TodoList
-        fields = "__all__"
-        read_only_fields = ["id", "created_at", "updated_at", "assigned_to"]
+        fields = ["id", "name", "created_at", "updated_at", "owned_by", "assigned_to", "owned_by_name", "assigned_to_name", "items_count"]
+        read_only_fields = ["id", "created_at", "updated_at", "assigned_to", "owned_by_name", "assigned_to_name", "items_count"]
 
 class ListAssignSerializer(serializers.ModelSerializer):
     class Meta:

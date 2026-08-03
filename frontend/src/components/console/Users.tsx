@@ -1,174 +1,70 @@
-import {useAuth} from "../../contexts/AuthContext";
-import {useNavigate} from "react-router-dom";
-import {Layout as UserLayout, TableColumnProps, UserCell} from "./Layout";
-import {Badge, Button, CloseButton, Dialog, Flex, Input, Menu, Portal, Select, Text} from "@chakra-ui/react";
+import {Layout as UserLayout, matchesSearch, SearchBar, TableColumnProps} from "./Layout";
+import {Badge, Flex, Input, InputGroup, Menu, Portal, Text, Alert, VStack} from "@chakra-ui/react";
 import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
-import {addTodoList, addUser, deleteTodoList, deleteUser, getAllUsers} from "../../queryOptions/queries";
-import {LuEllipsisVertical} from "react-icons/lu";
+import {
+    deleteUser,
+    getAllUsers, getAuth,
+    getUser
+} from "../../queryOptions/queries";
+import {LuEllipsisVertical, LuSearch} from "react-icons/lu";
 import {ReactNode, useState} from "react";
-import {Plus} from "lucide-react";
-import {User} from "./types";
-import {AddTodoListDialog} from "./TodoLists";
+import {roleProps, User, userKeys} from "../../common/types";
+import {AddUserDialog, EditProfileDialog, UserCellStatic} from "../../common/functions/user_functions";
 
 
-const roleProps: { [k: string]: { variant: string; role: string } } = {
-    "admin": {variant: "brand", role: "Admin"},
-    "standard": {variant: "standard", role: "Standard"},
+function getUserColumns(isAdmin: boolean, uid: string): TableColumnProps<User>[] {
+    const UsersColumns: TableColumnProps<User>[] = [
+        {
+            header: "User",
+            render: (a) => <UserCellStatic name={a.name} email={a.email}
+                                           avatar={a.avatar ?? "/images/topbar/avatar.png"}/>,
+        },
+        {
+            header: "Role",
+            render: (a) => (
+                <Badge borderRadius="xl" variant={roleProps[a.role].variant}>{roleProps[a.role].role}</Badge>
+            ),
+        },
+        {
+            header: "Status",
+            render: (a) => (a.is_active ?
+                    <Badge borderRadius="xl" variant="success">Active</Badge> :
+                    <Badge borderRadius="xl" variant="danger">Disabled</Badge>
+            ),
+        },
+    ]
+    if (isAdmin) {
+        UsersColumns.push({
+            header: "",
+            render: (a) => (
+                uid == a.id ? undefined :
+                <MenuCell userId={a.id}/>),
+        })
+    }
+    return UsersColumns
 }
 
-
-const UsersColumns: TableColumnProps<User>[] = [
-    {
-        header: "User",
-        render: (a) => <UserCell name={a.name} email={a.email} avatar={a.avatar ?? "/images/topbar/avatar.png"}/>,
-    },
-    {
-        header: "Role",
-        render: (a) => (
-            <Badge borderRadius="xl" variant={roleProps[a.role].variant}>{roleProps[a.role].role}</Badge>
-        ),
-    },
-    {
-        header: "Status",
-        render: (a) => (a.is_active ?
-                <Badge borderRadius="xl" variant="success">Active</Badge> :
-                <Badge borderRadius="xl" variant="danger">Disabled</Badge>
-        ),
-    },
-    {
-        header: "",
-        render: (a) => (<MenuCell userId={a.id}/>),
-    },
-
-]
 
 function MenuCell({userId}: { userId: string }) {
     const queryClient = useQueryClient()
+    const [editOpen, setEditOpen] = useState(false)
     const deleteOneUser = useMutation({
         mutationFn: () => deleteUser(userId),
         onSuccess: () => {
-            queryClient.invalidateQueries({queryKey: ["users"]})
+            queryClient.invalidateQueries({queryKey: userKeys.list});
         },
         onError: (err) => alert(err.message),
     })
-
-    return (
-        <Menu.Root>
-            <Menu.Trigger cursor="pointer">
-                {/*<Button variant="ghost" size="sm">*/}
-                <LuEllipsisVertical/>
-                {/*</Button>*/}
-            </Menu.Trigger>
-
-            <Portal>
-                <Menu.Positioner>
-                    <Menu.Content>
-                        <Menu.Item value="delete" color="fg.error" onSelect={deleteOneUser.mutate}>
-                            Delete
-                        </Menu.Item>
-                    </Menu.Content>
-                </Menu.Positioner>
-            </Portal>
-        </Menu.Root>
-    )
-}
-
-function AddUserDialog() {
-    const queryClient = useQueryClient()
-    const addOneUser = useMutation({
-        mutationFn: addUser,
-        onSuccess: () => {
-            queryClient.invalidateQueries({queryKey: ["users"]})
-        },
-        onError: (err) => alert(err.message),
-    })
-
-    const [open, setOpen] = useState(false);
-    const [userName, setUserName] = useState("");
-    const [email, setEmail] = useState("");
-    return (
-        <>
-            <Button onClick={() => setOpen(true)}><Plus/>Add New User</Button>
-
-            <Dialog.Root open={open} onOpenChange={() => setOpen(false)}>
-                <Portal>
-                    <Dialog.Backdrop/>
-                    <Dialog.Positioner>
-                        <Dialog.Content>
-                            <Dialog.Header>
-                                <Dialog.Title>Create Todo List</Dialog.Title>
-                            </Dialog.Header>
-
-                            <Dialog.Body>
-                                <Text> Full name </Text>
-
-                                <Input placeholder="e.g. Xxx Yyy" value={userName}
-                                       onChange={(e) => setUserName(e.target.value)}/>
-
-                                <Text> Email </Text>
-                                <Input placeholder="e.g. xxx@yyy.com" value={email}
-                                       onChange={(e) => setEmail(e.target.value)}/>
-
-
-                                <Text> Role </Text>
-                                <Select.Root>
-
-                                </Select.Root>
-                            </Dialog.Body>
-
-
-                            <Dialog.Footer>
-                                <Button onClick={() => setOpen(false)}>
-                                    Cancel
-                                </Button>
-                                <Button onClick={() => {
-                                    addOneUser.mutate({
-                                        name: userName,
-                                        email: email,
-                                        role: ""
-                                    }), setOpen(false)
-                                }}>
-                                    Create
-                                </Button>
-                            </Dialog.Footer>
-
-                            <Dialog.CloseTrigger asChild>
-                                <CloseButton size="sm"/>
-                            </Dialog.CloseTrigger>
-
-                        </Dialog.Content>
-                    </Dialog.Positioner>
-                </Portal>
-            </Dialog.Root>
-        </>
-    )
-}
-
-
-function HeaderCell({title, addLabel}: { title: string,  addLabel: ReactNode}) {
-    return (
-        <Flex justify="space-between" alignItems="center">
-            <Text textStyle="body.2xl.medium.salt"> {title} </Text>
-            <Flex>
-                {addLabel}
-            </Flex>
-        </Flex>
-    )
-}
-
-
-
-export function Users() {
-
     const {
-        data: users,
+        data: user,
         isPending,
         isError,
         error,
     } = useQuery({
-        queryKey: ["users"],
-        queryFn: getAllUsers
+        queryKey: userKeys.detail(userId),
+        queryFn: () => getUser(userId),
     })
+
     if (isPending) {
         return <Text> Loading </Text>
     }
@@ -176,10 +72,104 @@ export function Users() {
         return <Text> Sth went wrong </Text>
     }
 
+    return (
+        <>
+            <Menu.Root>
+                <Menu.Trigger cursor="pointer">
+                    {/*<Button variant="ghost" size="sm">*/}
+                    <LuEllipsisVertical/>
+                    {/*</Button>*/}
+                </Menu.Trigger>
 
+                <Portal>
+                    <Menu.Positioner>
+                        <Menu.Content>
+                            <Menu.Item value="delete" color="fg.error" onSelect={deleteOneUser.mutate}>
+                                <Menu.ItemText>Delete</Menu.ItemText>
+                            </Menu.Item>
+                            <Menu.Item value="edit" onSelect={() => setEditOpen(true)}>
+                                <Menu.ItemText>Edit</Menu.ItemText>
+                            </Menu.Item>
+
+                        </Menu.Content>
+                    </Menu.Positioner>
+                </Portal>
+            </Menu.Root>
+
+            <EditProfileDialog user={user} open={editOpen} onOpenChange={setEditOpen} isAuth={false}/>
+        </>
+
+    )
+}
+
+
+function HeaderCell({title, addLabel, isAdmin}: { title: string, addLabel: ReactNode, isAdmin: boolean }) {
+    return (
+        <Flex direction="column" gap={1}>
+            <Flex justify={isAdmin ? "space-between" : "flex-start"} alignItems="center">
+                <Text textStyle="body.2xl.medium.salt" position="relative"> {title} </Text>
+                <Flex>
+                    {isAdmin ? addLabel : undefined}
+                    {/*{addLabel}*/}
+                </Flex>
+            </Flex>
+            {!isAdmin && (
+                <Alert.Root status="warning" borderRadius="lg">
+                    <Alert.Indicator/>
+                    <Alert.Title>
+                        You are viewing as a standard user — user management is available to admins only.
+                    </Alert.Title>
+                </Alert.Root>
+            )}
+
+        </Flex>
+    )
+}
+
+
+export function Users() {
+
+    const {
+        data: users,
+        isPending: isPendingUsers,
+        isError: isErrorUsers,
+        error: errorUsers,
+    } = useQuery({
+        queryKey: userKeys.list,
+        queryFn: getAllUsers
+    })
+
+    const {
+        data: user,
+        isPending: isPendingUser,
+        isError: isErrorUser,
+        error: errorUser,
+    } = useQuery({
+        queryKey: userKeys.auth,
+        queryFn: getAuth
+    })
+
+
+    const [search, setSearch] = useState("")
+
+
+    if (isPendingUsers || isPendingUser) {
+        return <Text> Loading </Text>
+    }
+    if (isErrorUsers || isErrorUser) {
+        return <Text> Sth went wrong </Text>
+    }
+
+
+    const isAdmin = user.role === "admin"
+    const filteredUsers = users.filter(u => matchesSearch(search, u.name, u.email))
+
+    const UsersColumns = getUserColumns(isAdmin, user.id)
 
     return (
-        <UserLayout header={<HeaderCell title="Users" addLabel={<AddUserDialog/>}/>} tableColumns={UsersColumns}
-                            rows={users} placeholder="search by user name"/>
+        <UserLayout header={<HeaderCell title="Users" addLabel={<AddUserDialog/>} isAdmin={isAdmin}/>}
+                    tableColumns={UsersColumns}
+                    rows={filteredUsers} searchBar={<SearchBar placeholder="search by user name or email" value={search}
+                                                               onChange={(s) => setSearch(s)}/>}/>
     )
 }

@@ -16,11 +16,6 @@ const navItems = [
         path: "/console/users",
         icon: <Users/>
     },
-    // {
-    //     label: "Admins",
-    //     path: "/console/admins",
-    //     icon: <SquareUserRound/>
-    // },
     {
         label: "Back to Intern Docs",
         path: "/dashboard",
@@ -28,9 +23,34 @@ const navItems = [
     }
 ];
 
-export function NavMenu() {
+
+// const navItems = [
+//     {
+//         label: "Dashboard",
+//         path: "/dashboard",
+//         icon: <LayoutGrid/>,
+//     },
+//     {
+//         label: "Products",
+//         path: "/products",
+//         icon: <Package/>,
+//     },
+//     {
+//         label: "Users",
+//         path: "/users",
+//         icon: <Users/>
+//     },
+//     {
+//         label: "Admins",
+//         path: "/admins",
+//         icon: <SquareUserRound/>
+//     },
+// ];
+
+export function NavMenuConsole() {
     const location = useLocation();
     const { open, onToggle } = useDisclosure()
+
 
     return (
         <Box hideFrom="lg">

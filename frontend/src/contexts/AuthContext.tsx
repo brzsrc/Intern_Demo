@@ -4,14 +4,15 @@ import {createUserWithEmailAndPassword, GoogleAuthProvider, signInWithEmailAndPa
 import {updateProfile} from "firebase/auth";
 import {api} from "../apis/api";
 import {useQuery} from "@tanstack/react-query";
-import {getCurrentUser} from "../queryOptions/queries";
+import {getAuth} from "../queryOptions/queries";
 
 
 type UserInfo = {
-    fullName: string;
-    email: string;
-    id: string;
-    avatar?: string;
+    // fullName: string;
+    // email: string;
+    // id: string;
+    // avatar?: string;
+    firebase_uid: string;
 }
 
 type User = UserInfo | null;
@@ -23,7 +24,6 @@ type AuthCxtComponents = {
     signup: (fullName: string, email: string, password: string) => void;
     signUpWithGoogle: () => void;
     isAuthenticated: boolean;
-    refreshUser: () => void;
 } | null
 
 const AuthCxt = createContext<AuthCxtComponents>(null);
@@ -47,23 +47,19 @@ export function AuthProvider({children}: { children: ReactNode }) {
             return null
         }
 
-        const user = await getCurrentUser()
-        if (!user) {
-            setUser(null)
-        } else {
-            setUser({
-                email: user.email,
-                fullName: user.name,
-                id: user.id,
-                avatar: user.avatar,
-            })
-        }
+        // const user = await getCurrentUser()
+        // if (!user) {
+        //     setUser(null)
+        // } else {
+        //     setUser({
+        //         email: user.email,
+        //         fullName: user.name,
+        //         id: user.id,
+        //         avatar: user.avatar,
+        //     })
+        // }
+        setUser({firebase_uid: firebaseUser.uid})
         setLoading(false)
-        return user
-    }
-
-    async function refreshUser() {
-        const user = await updateUser(appAuth.currentUser)
         return user
     }
 
@@ -86,16 +82,7 @@ export function AuthProvider({children}: { children: ReactNode }) {
             const cred = await createUserWithEmailAndPassword(appAuth, email, password);
             await updateProfile(cred.user, {displayName: fullName});
             await cred.user.getIdToken(true)
-            const user = await getCurrentUser()
-            if (!user) {
-                setUser(null)
-            } else {
-                setUser({
-                    email: user.email,
-                    fullName: user.name,
-                    id: user.id
-                })
-            }
+            setUser({firebase_uid: cred.user.uid})
         } finally {
             signingUp.current = false;
             setLoading(false)
@@ -109,7 +96,7 @@ export function AuthProvider({children}: { children: ReactNode }) {
 
 
     return (
-        <AuthCxt.Provider value={{user, login, logout, signup, signUpWithGoogle, isAuthenticated, refreshUser}}>
+        <AuthCxt.Provider value={{user, login, logout, signup, signUpWithGoogle, isAuthenticated}}>
             {!loading && children}
         </AuthCxt.Provider>
     )

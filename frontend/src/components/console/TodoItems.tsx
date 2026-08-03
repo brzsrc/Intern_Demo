@@ -1,19 +1,15 @@
-import {Box, Button, CloseButton, Dialog, Flex, Input, Menu, Portal, Select, Text, Textarea} from "@chakra-ui/react";
-import {useNavigate, useParams, useSearchParams} from "react-router-dom";
+import {Flex, Menu, Portal, Text} from "@chakra-ui/react";
+import {useNavigate, useParams} from "react-router-dom";
 import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
-import {
-    addTodoItem,
-    addTodoList, deleteTodoItem,
-    deleteTodoList,
-    getAllTodoLists,
-    getTodoItemsByListId
-} from "../../queryOptions/queries";
-import {TodoItem} from "./types";
+import {deleteTodoItem, getTodoItemsByListId} from "../../queryOptions/queries";
+import {TodoItem, todoItemKeys, todoListKeys} from "../../common/types";
 import {ReactNode, useState} from "react";
-import {ArrowLeft, MoveLeft, MoveRight, Plus} from "lucide-react";
-import {Layout as TodoItemLayout, TableColumnProps} from "./Layout";
+import {MoveLeft} from "lucide-react";
+import {Layout as TodoItemLayout, matchesSearch, SearchBar, TableColumnProps} from "./Layout";
 import {LuEllipsisVertical} from "react-icons/lu";
-import {AddTodoListDialog} from "./TodoLists";
+
+import {AddTodoItemDialog, EditTodoItemDialog} from "../../common/functions/todoItem_functions";
+import {formatDateTime, truncate} from "../../common/functions/common";
 
 
 interface TodoItemRow {
@@ -32,117 +28,59 @@ const TodoItemColumns: TableColumnProps<TodoItemRow>[] = [
     },
     {
         header: "Content",
-        render: (a) => a.content,
+        render: (a) => truncate(a.content),
     },
     {
         header: "updated",
-        render: (a) => a.updated_at,
+        render: (a) => formatDateTime(a.updated_at),
     },
     {
         header: "",
-        render: (a) => (<MenuCell itemId={a.id}/>),
+        render: (a) => (<MenuCell item={a}/>),
     },
 
 ]
 
-function MenuCell({itemId}: { itemId: string }) {
+function MenuCell({item}: { item: TodoItem }) {
     const queryClient = useQueryClient()
     const deleteItem = useMutation({
-        mutationFn: () => deleteTodoItem(itemId),
+        mutationFn: () => deleteTodoItem(item.id),
         onSuccess: () => {
-            queryClient.invalidateQueries({queryKey: ["todoItems"]})
+            queryClient.invalidateQueries({queryKey: todoItemKeys.items})
+            queryClient.invalidateQueries({queryKey: todoListKeys.lists})
+            queryClient.invalidateQueries({queryKey: todoListKeys.detail(item.list_within)})
         },
         onError: (err) => alert(err.message),
     })
+    const [editOpen, setEditOpen] = useState(false)
 
     return (
-        <Menu.Root>
-            <Menu.Trigger cursor="pointer">
-                {/*<Button variant="ghost" size="sm">*/}
-                <LuEllipsisVertical/>
-                {/*</Button>*/}
-            </Menu.Trigger>
 
-            <Portal>
-                <Menu.Positioner>
-                    <Menu.Content>
-                        <Menu.Item value="delete" color="fg.error" onSelect={deleteItem.mutate}>
-                            Delete
-                        </Menu.Item>
-                    </Menu.Content>
-                </Menu.Positioner>
-            </Portal>
-        </Menu.Root>
-    )
-}
-
-function AddTodoItemDialog({listId}: { listId: string }) {
-    const queryClient = useQueryClient();
-    const [open, setOpen] = useState(false);
-    const [itemName, setItemName] = useState("");
-    const [itemContent, setItemContent] = useState("");
-
-    const addItem = useMutation({
-        mutationFn: (todoItem: TodoItem) => addTodoItem(todoItem),
-        onSuccess: () => {
-            queryClient.invalidateQueries({queryKey: ["todoItems"]})
-        },
-        onError: (err) => alert(err.message),
-    })
-
-
-    return (
         <>
-            <Button onClick={() => setOpen(true)}>
-                add item
-            </Button>
+            <Menu.Root>
+                <Menu.Trigger cursor="pointer">
+                    {/*<Button variant="ghost" size="sm">*/}
+                    <LuEllipsisVertical/>
+                    {/*</Button>*/}
+                </Menu.Trigger>
 
-            <Dialog.Root open={open} onOpenChange={() => setOpen(false)}>
                 <Portal>
-                    <Dialog.Backdrop/>
-                    <Dialog.Positioner>
-                        <Dialog.Content>
-                            <Dialog.Header>
-                                <Dialog.Title>Add Todo Item</Dialog.Title>
-                            </Dialog.Header>
+                    <Menu.Positioner>
+                        <Menu.Content>
+                            <Menu.Item value="delete" color="fg.error" onSelect={deleteItem.mutate}>
+                                Delete
+                            </Menu.Item>
 
-                            <Dialog.Body>
-                                <Text> Item name </Text>
-
-                                <Input placeholder="e.g. XXX YYY" value={itemName}
-                                       onChange={(e) => setItemName(e.target.value)}/>
-
-                                <Text> Content </Text>
-                                <Textarea placeholder="Details..." value={itemContent}
-                                          onChange={(e) => setItemContent(e.target.value)} h={100}/>
-
-                            </Dialog.Body>
-
-
-                            <Dialog.Footer>
-                                <Button onClick={() => setOpen(false)}>
-                                    Cancel
-                                </Button>
-                                <Button onClick={() => {
-                                    addItem.mutate({
-                                        name: itemName,
-                                        content: itemContent,
-                                        list_within: listId,
-                                    }), setOpen(false)
-                                }}>
-                                    Create
-                                </Button>
-                            </Dialog.Footer>
-
-                            <Dialog.CloseTrigger asChild>
-                                <CloseButton size="sm"/>
-                            </Dialog.CloseTrigger>
-
-                        </Dialog.Content>
-                    </Dialog.Positioner>
+                            <Menu.Item value="edit" onSelect={() => setEditOpen(true)}>
+                                <Menu.ItemText>View & Edit</Menu.ItemText>
+                            </Menu.Item>
+                        </Menu.Content>
+                    </Menu.Positioner>
                 </Portal>
-            </Dialog.Root>
+            </Menu.Root>
+            <EditTodoItemDialog item={item} open={editOpen} onOpenChange={setEditOpen} />
         </>
+
     )
 }
 
@@ -151,8 +89,8 @@ function HeaderCell({title, addLabel}: { title: string, addLabel: ReactNode }) {
 
     return (
         <Flex justify="space-between" alignItems="center">
-            <Flex direction="column">
-                <Flex onClick={() => navigate(-1)} cursor="pointer" gap={1}>
+            <Flex direction="column" gap={2}>
+                <Flex onClick={() => navigate(-1)} cursor="pointer" gap={2}>
                     <MoveLeft strokeWidth={0.9}/> <Text> Todo Lists</Text>
                 </Flex>
                 <Text textStyle="body.2xl.medium.salt"> {title} </Text>
@@ -175,17 +113,19 @@ export function TodoItems() {
         isError,
         error
     } = useQuery({
-        queryKey: ["todoItems", listId],
+        queryKey: todoListKeys.detail(listId),
         queryFn: () => getTodoItemsByListId(listId),
         // enabled: !!listId,
     })
 
-
+    const [search, setSearch] = useState("")
     if (isPending) return <Text>Loading</Text>
     if (isError) return <Text>Sth went wrong</Text>
     // console.log("todoItems:", {data})
 
+
     const {list_name, items: todoItems} = data
+    const filteredItems = todoItems.filter(i => matchesSearch(search, i.name))
 
 
     return (
@@ -193,7 +133,10 @@ export function TodoItems() {
 
             <TodoItemLayout header={<HeaderCell title={list_name} addLabel={<AddTodoItemDialog listId={listId}/>}/>}
                             tableColumns={TodoItemColumns}
-                            rows={todoItems} placeholder="search by item name or owner"/>
+                            rows={filteredItems} searchBar={<SearchBar placeholder="search by item name" value={search}
+                                                  onChange={(s) => setSearch(s)}/>}/>
         </>
     )
+
+
 }

@@ -37,7 +37,7 @@ class FirebaseAuthentication(authentication.BaseAuthentication):
 
         # try:
         user, created = User.objects.get_or_create(firebase_uid=uid,
-                                                   defaults={"email": email, "name": decoded_token.get("name", "default username")})
+                                                   defaults={"email": email, "name": decoded_token.get("name", "default user")})
         # except User.DoesNotExist:
         #     raise AuthenticationFailed("User not registered, call /register first")
         if not created and not user.name and decoded_token.get("name"):

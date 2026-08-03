@@ -1,62 +1,43 @@
 import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
-import {addTodoList, deleteTodoList, getAllTodoLists} from "../../queryOptions/queries";
-import {
-    Badge,
-    Box,
-    Button,
-    Circle,
-    CloseButton,
-    Dialog,
-    Flex,
-    Input,
-    Menu,
-    Portal,
-    Select,
-    Text
-} from "@chakra-ui/react";
-import {Layout as TodoListLayout, TableColumnProps, UserCell} from "./Layout";
-import {Plus} from "lucide-react";
+import {deleteTodoList, getAllTodoLists, getAuth} from "../../queryOptions/queries";
+import {Alert, Box, Flex, Menu, Portal, Text} from "@chakra-ui/react";
+import {Layout as TodoListLayout, matchesSearch, SearchBar, TableColumnProps} from "./Layout";
 import {LuEllipsisVertical} from "react-icons/lu";
 import {useNavigate} from "react-router-dom";
-import {ReactNode, useRef, useState} from "react";
-
-interface TodoListRow {
-    id: string;
-    name: string;
-    owned_by: string;
-    assigned_to: string;
-    items: number;
-    updated_at: string;
-    created_at: string;
-}
+import {ReactNode, useState} from "react";
+import {
+    AddTodoListDialog,
+    AssignTodoListDialog,
+    EditTodoListDialog
+} from "../../common/functions/todoList_functions";
+import {TodoList, todoListKeys, userKeys} from "../../common/types";
+import {formatDateTime} from "../../common/functions/common";
 
 
-const TodoListColumns: TableColumnProps<TodoListRow>[] = [
+const TodoListColumns: TableColumnProps<TodoList>[] = [
     {
         header: "List",
         render: (a) => (<ListNameCell listName={a.name} listId={a.id}/>),
     },
     {
         header: "Owner",
-        render: (a) => a.owned_by,
+        render: (a) => a.owned_by_name,
     },
     {
         header: "Assigned to",
-        render: (a) => a.assigned_to,
+        render: (a) => a.assigned_to_name,
     },
     {
         header: "#Items",
-        render: (a) => (
-            1111111
-        ),
+        render: (a) => a.items_count,
     },
     {
-        header: "updated",
-        render: (a) => a.updated_at,
+        header: "Updated",
+        render: (a) => formatDateTime(a.updated_at),
     },
     {
         header: "",
-        render: (a) => (<MenuCell listId={a.id}/>),
+        render: (a) => (<MenuCell list={a}/>),
     },
 
 ]
@@ -70,132 +51,145 @@ function ListNameCell({listName, listId}: { listName: string, listId: string }) 
     )
 }
 
-function MenuCell({listId}: { listId: string }) {
+function MenuCell({list}: { list: TodoList }) {
     const queryClient = useQueryClient()
     const deleteList = useMutation({
-        mutationFn: () => deleteTodoList(listId),
+        mutationFn: () => deleteTodoList(list.id),
         onSuccess: () => {
-            queryClient.invalidateQueries({queryKey: ["todoLists"]})
+            queryClient.invalidateQueries({queryKey: todoListKeys.lists})
         },
         onError: (err) => alert(err.message),
     })
 
-    return (
-        <Menu.Root>
-            <Menu.Trigger cursor="pointer">
-                {/*<Button variant="ghost" size="sm">*/}
-                <LuEllipsisVertical/>
-                {/*</Button>*/}
-            </Menu.Trigger>
-
-            <Portal>
-                <Menu.Positioner>
-                    <Menu.Content>
-                        <Menu.Item value="delete" color="fg.error" onSelect={deleteList.mutate}>
-                            Delete
-                        </Menu.Item>
-                    </Menu.Content>
-                </Menu.Positioner>
-            </Portal>
-        </Menu.Root>
-    )
-}
-
-
-export function AddTodoListDialog() {
-    const queryClient = useQueryClient()
-    const addlist = useMutation({
-        mutationFn: addTodoList,
-        onSuccess: () => {
-            queryClient.invalidateQueries({queryKey: ["todoLists"]})
-        },
-        onError: (err) => alert(err.message),
+    const {
+        data: user,
+        isPending,
+        isError,
+        error
+    } = useQuery({
+        queryKey: userKeys.auth,
+        queryFn: getAuth
     })
 
-    const [open, setOpen] = useState(false);
-    const [listName, setListName] = useState("");
+    const [editOpen, setEditOpen] = useState(false)
+    const [assignOpen, setAssignOpen] = useState(false)
+
+    if (isPending) return <Text>Loading</Text>
+    if (isError) return <Text>Sth went wrong</Text>
+
+    const isAdmin = user.role === "admin"
+    const isYours = user.id == list.owned_by
+
+
     return (
         <>
-            <Button onClick={() => setOpen(true)}><Plus/>Add New List</Button>
+            <Menu.Root>
+                <Menu.Trigger cursor="pointer">
+                    {/*<Button variant="ghost" size="sm">*/}
+                    <LuEllipsisVertical/>
+                    {/*</Button>*/}
+                </Menu.Trigger>
 
-            <Dialog.Root open={open} onOpenChange={() => setOpen(false)}>
                 <Portal>
-                    <Dialog.Backdrop/>
-                    <Dialog.Positioner>
-                        <Dialog.Content>
-                            <Dialog.Header>
-                                <Dialog.Title>Create Todo List</Dialog.Title>
-                            </Dialog.Header>
+                    <Menu.Positioner>
+                        <Menu.Content>
+                            <Menu.Item value="delete" color="fg.error" onSelect={deleteList.mutate}>
+                                Delete
+                            </Menu.Item>
 
-                            <Dialog.Body>
-                                <Text> List name </Text>
-
-                                <Input placeholder="e.g. XXX YYY" value={listName}
-                                       onChange={(e) => setListName(e.target.value)}/>
-
-                                <Text> Owner </Text>
-                                <Select.Root>
-
-                                </Select.Root>
-                            </Dialog.Body>
+                            <Menu.Item value="edit" onSelect={() => setEditOpen(true)}>
+                                <Menu.ItemText>Edit</Menu.ItemText>
+                            </Menu.Item>
 
 
-                            <Dialog.Footer>
-                                <Button onClick={() => setOpen(false)}>
-                                    Cancel
-                                </Button>
-                                <Button onClick={() => {
-                                    addlist.mutate({
-                                        name: listName
-                                    }), setOpen(false)
-                                }}>
-                                    Create
-                                </Button>
-                            </Dialog.Footer>
+                            {
+                                (isAdmin && isYours) ? (
+                                    <Menu.Item value="assign" onSelect={() => setAssignOpen(true)}>
+                                        <Menu.ItemText>Assign to User</Menu.ItemText>
+                                    </Menu.Item>
+                                ) : undefined
+                            }
 
-                            <Dialog.CloseTrigger asChild>
-                                <CloseButton size="sm"/>
-                            </Dialog.CloseTrigger>
 
-                        </Dialog.Content>
-                    </Dialog.Positioner>
+                        </Menu.Content>
+                    </Menu.Positioner>
                 </Portal>
-            </Dialog.Root>
+            </Menu.Root>
+            <EditTodoListDialog list={list} open={editOpen} onOpenChange={setEditOpen} isAdmin={isAdmin}/>
+            <AssignTodoListDialog list={list} open={assignOpen} onOpenChange={setAssignOpen}/>
         </>
+
     )
 }
 
-function HeaderCell({title, addLabel}: { title: string,  addLabel: ReactNode}) {
+
+function HeaderCell({title, addLabel, isAdmin}: { title: string, addLabel: ReactNode, isAdmin: boolean }) {
     return (
-        <Flex justify="space-between" alignItems="center">
-            <Text textStyle="body.2xl.medium.salt"> {title} </Text>
-            <Flex>
-                {addLabel}
+        <Flex direction="column" gap={2}>
+            <Flex justify="space-between" alignItems="center">
+                <Text textStyle="body.2xl.medium.salt" position="relative"> {title} </Text>
+                <Flex>
+                    {addLabel}
+                </Flex>
             </Flex>
+            {isAdmin && (
+                <Alert.Root status="warning" borderRadius="lg">
+                    <Alert.Indicator/>
+                    <Alert.Title>
+                        You are viewing as an admin user — notice you are only allowed to assign your own lists to other
+                            users.
+                    </Alert.Title>
+                </Alert.Root>
+            )}
+
         </Flex>
+
     )
 }
 
 export function TodoLists() {
     const {
         data: todoLists,
-        isPending,
-        isError,
-        error
+        isPending: listIsPending,
+        isError: listIsError,
+        error: listError,
     } = useQuery({
-        queryKey: ["todoLists"],
+        queryKey: todoListKeys.lists,
         queryFn: getAllTodoLists
     })
 
-    // console.log("todoLists" + todoLists)
 
-    if (isPending) return <Text>Loading</Text>
-    if (isError) return <Text>Sth went wrong</Text>
+    const {
+        data: user,
+        isPending: userIsPending,
+        isError: userIsError,
+        error: userError,
+    } = useQuery({
+        queryKey: userKeys.auth,
+        queryFn: getAuth
+    })
+
+    const [search, setSearch] = useState("")
+
+    if (listIsPending || userIsPending) return <Text>Loading</Text>
+    if (listIsError || userIsError) return <Text>Sth went wrong</Text>
+
+    const isAdmin = user.role === "admin"
+
+
+    const filteredLists = todoLists.filter(l => matchesSearch(search, l.owned_by_name, l.name))
 
     return (
         <>
-            <TodoListLayout header={<HeaderCell title="Todo Lists" addLabel={<AddTodoListDialog/>}/>} tableColumns={TodoListColumns}
-                            rows={todoLists} placeholder="search by list name or owner"/>
+            <TodoListLayout
+                header={
+                    <HeaderCell title="Todo Lists"
+                                addLabel={<AddTodoListDialog isAdmin={isAdmin}/>}
+                                isAdmin={isAdmin}/>}
+                tableColumns={TodoListColumns}
+                rows={filteredLists}
+                searchBar={<SearchBar placeholder="search by list name or owner name" value={search}
+                                      onChange={(s) => setSearch(s)}/>}/>
         </>
     )
 }

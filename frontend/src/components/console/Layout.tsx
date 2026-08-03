@@ -1,22 +1,6 @@
-import {
-    Circle,
-    Flex,
-    Grid,
-    GridItem,
-    Image,
-    SimpleGrid,
-    Text,
-    Square,
-    Button,
-    Box,
-    Badge,
-    InputGroup, Input, Table, TableScrollArea, Menu, Portal, Dialog
-} from "@chakra-ui/react";
-import {Plus} from "lucide-react";
-import {LuEllipsisVertical, LuSearch} from "react-icons/lu";
-import {ReactNode, useRef, useState} from "react";
-import {useAuth} from "../../contexts/AuthContext";
-import {updateUserAvatar} from "../../queryOptions/queries";
+import {Flex, Input, InputGroup, Table} from "@chakra-ui/react";
+import {LuSearch} from "react-icons/lu";
+import {ReactNode, useState} from "react";
 
 
 export interface TableColumnProps<T> {
@@ -30,121 +14,38 @@ export interface LayoutProps<T> {
     // backLabel?: ReactNode,
     tableColumns: TableColumnProps<T>[],
     rows: T[],
+    searchBar: ReactNode
+}
+
+export function matchesSearch(q: string, ...fields: (string | null | undefined)[]) {
+    const s = q.trim().toLowerCase()
+    if (!s) return true                      // 空搜索 = 全显示
+    return fields.some(f => f?.toLowerCase().includes(s))
+}
+
+export function SearchBar({placeholder, value, onChange}: {
     placeholder: string
-}
-
-export function MenuCell(): {} {
+    value: string
+    onChange: (v: string) => void
+}) {
     return (
-        <Menu.Root>
-            <Menu.Trigger cursor="pointer">
-                {/*<Button variant="ghost" size="sm">*/}
-                <LuEllipsisVertical/>
-                {/*</Button>*/}
-            </Menu.Trigger>
-
-            <Portal>
-                <Menu.Positioner>
-                    <Menu.Content>
-                    </Menu.Content>
-                </Menu.Positioner>
-            </Portal>
-        </Menu.Root>
+        <InputGroup startElement={<LuSearch/>}>
+            <Input w={400} h={12} textStyle="body.sm.regular"
+                   placeholder={placeholder} value={value}
+                   onChange={(e) => onChange(e.target.value)}/>
+        </InputGroup>
     )
+
 }
 
-export function UserCellStatic({name, email, avatar}: { name: string, email: string, avatar: string }) {
-    return (
-        <Flex gap="3">
-            <Circle size="40px" overflow="hidden">
-                <Image src={avatar} alt="" aspectRatio="1" objectFit="cover"/>
-            </Circle>
+export function Layout<T>({header, tableColumns, rows, searchBar}: LayoutProps<T>) {
 
-            <Flex direction="column">
-                <Text textStyle="body.sm.medium"> {name} </Text>
-                <Text fontSize="xs" color="fg.placeholder"> {email}</Text>
-            </Flex>
-        </Flex>
-    )
-}
-
-export function UserCell({name, email, avatar}: { name: string, email: string, avatar: string }) {
-    const [open, setOpen] = useState(false);
-    const refreshUser = useAuth().refreshUser
-    const fileInputRef = useRef<HTMLInputElement>(null);
-
-    async function ProfilePictureHandler(e: React.ChangeEvent<HTMLInputElement>) {
-        console.log("inside ProfilePictureHandler")
-        const file = e.target.files?.[0]
-        console.log(e.target.files?.[0])
-        if (!file) {
-            console.log("No image uplaoded")
-            return
-        }
-        try {
-            console.log("image uplaoding")
-            await updateUserAvatar(file)
-            const user = await refreshUser()
-            console.log(user)
-        } catch (error) {
-            console.error(error)
-        }
-        return
-    }
-
-    return (
-        <>
-            <Flex gap="3">
-                <Circle size="40px" overflow="hidden" cursor="pointer"
-                        onClick={() => setOpen(true)}>
-                    <Image src={avatar} alt="" aspectRatio="1" objectFit="cover"/>
-                </Circle>
-
-                <Flex direction="column">
-                    <Text textStyle="body.sm.medium"> {name} </Text>
-                    <Text fontSize="xs" color="fg.placeholder"> {email}</Text>
-                </Flex>
-            </Flex>
-
-            <input
-                type="file"
-                accept="image/*"
-                hidden
-                ref={fileInputRef}
-                onChange={(e) => ProfilePictureHandler(e)}
-            />
-            <Dialog.Root open={open} onOpenChange={() => setOpen(false)}>
-                <Portal>
-                    <Dialog.Backdrop/>
-                    <Dialog.Positioner>
-                        <Dialog.Content>
-                            <Flex direction="column" alignItems="center" px={10} py={10} gap={4}>
-                                <Square size="400px" overflow="hidden">
-                                    <img src={avatar} alt=""/>
-                                </Square>
-                                <Button onClick={() => fileInputRef.current?.click()}>
-                                    Upload Profile Picture
-                                </Button>
-
-                            </Flex>
-                        </Dialog.Content>
-                    </Dialog.Positioner>
-                </Portal>
-            </Dialog.Root>
-        </>
-
-    )
-}
-
-
-export function Layout<T>({header, tableColumns, rows, placeholder}: LayoutProps<T>) {
     return (
         <Flex direction="column" gap="6" p="6">
             {header}
 
             <Flex layerStyle="surface.cardOutlined" direction="column" gap={4} px={5} py={6}>
-                <InputGroup startElement={<LuSearch/>}>
-                    <Input w={400} h={12} textStyle="body.sm.regular" placeholder={placeholder}/>
-                </InputGroup>
+                {searchBar}
 
                 <Table.ScrollArea borderWidth="1px" rounded="xl">
                     <Table.Root showColumnBorder borderWidth="1px" borderRadius="xl">

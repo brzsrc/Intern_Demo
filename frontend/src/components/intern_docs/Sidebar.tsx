@@ -32,7 +32,7 @@ const navItems = [
     }
 ];
 
-export function NavMenu() {
+export function NavMenuDocs() {
     const location = useLocation();
     const { open, onToggle } = useDisclosure()
 

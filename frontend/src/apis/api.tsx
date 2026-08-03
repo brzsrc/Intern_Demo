@@ -4,6 +4,7 @@ import {appAuth} from "../firebase/firebase";
 
 export const api = axios.create({
     baseURL: 'http://localhost:8000/api/',
+    // baseURL: 'http://10.0.2.2:8000/api/',
 })
 
 api.interceptors.request.use(

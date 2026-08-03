@@ -70,7 +70,7 @@ export default function Dashboard() {
                   gap={6}>
                 <GridItem>
                     <Flex layerStyle="surface.cardOutlined" alignItems="center" justifyContent="flex-start"
-                          pr={10} h="100%" gap={{sm: 8, xl: 2}}>
+                          pr={10} h="100%" gap={{base: 1, sm: 8, xl: 2}}>
                         <Box borderRadius="xl" overflow="hidden" w="100%" maxW={{sm: "150px", xl: "250px"}}>
                             <Image
                                 src="/images/dashboard/readyStart.png"

@@ -4,11 +4,11 @@ from rest_framework import viewsets, generics
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from accounts.models import Client, User, TodoList, TodoItem
-from accounts.permissions import IsAdmin
+from accounts.permissions import IsAdmin, IsAdminOrStandard
 from accounts.serializers import ClientSerializer, UserSerializer, TodoListSerializer, TodoItemSerializer, \
     ListAssignSerializer, RegisterSerializer, AuthSerializer
 from firebase_admin import auth
-from django.db.models import Q
+from django.db.models import Q, Count
 
 
 class AuthView(generics.RetrieveUpdateAPIView):
@@ -51,11 +51,36 @@ class RegisterView(generics.CreateAPIView):
         )
 
 
-# Create your views here.
-class UserViewSet(viewsets.ReadOnlyModelViewSet):
+class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    permission_classes = [AllowAny]
+    permission_classes = [IsAdminOrStandard]
+
+    def perform_create(self, serializer):
+        password = serializer.validated_data.pop("password", None)
+        email = serializer.validated_data["email"]
+        name = serializer.validated_data.get("name", "")
+
+        try:
+            fb_user = auth.create_user(
+                email=email,
+                password=password,
+                display_name=name,
+            )
+        except auth.EmailAlreadyExistsError:
+            raise ValidationError({"email": "A Firebase account with this email already exists."})
+
+        try:
+            serializer.save(firebase_uid=fb_user.uid)
+        except Exception:
+            auth.delete_user(fb_user.uid)
+            raise
+
+    def perform_destroy(self, instance):
+        auth.delete_user(instance.firebase_uid)
+        instance.delete()
+
+
 
     @action(detail=True, methods=['get'], permission_classes=[IsAuthenticated])
     def assigned_lists(self, request, pk=None):
@@ -90,14 +115,13 @@ class ClientViewSet(viewsets.ModelViewSet):
 
 class TodoListViewSet(viewsets.ModelViewSet):
     serializer_class = TodoListSerializer
-    queryset = TodoList.objects.all()
+    queryset = TodoList.objects.annotate(items_count=Count("todoItems"))
 
     def get_queryset(self):
         if self.request.user.is_admin:
-            return TodoList.objects.all()
-        # return TodoList.objects.filter(
-        # Q(owned_by=self.request.user) | Q(assigned_to=self.request.user))
-        return TodoList.objects.filter(owned_by=self.request.user)
+            return TodoList.objects.annotate(items_count=Count("todoItems"))
+        return TodoList.objects.annotate(items_count=Count("todoItems")).filter(
+            Q(owned_by=self.request.user) | Q(assigned_to=self.request.user))
 
     def perform_create(self, serializer):
         if self.request.user.is_admin:
@@ -142,12 +166,14 @@ class TodoItemViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         if self.request.user.is_admin:
             return TodoItem.objects.all()
-        return TodoItem.objects.filter(list_within__owned_by=self.request.user)
+        return TodoItem.objects.filter(
+            Q(list_within__owned_by=self.request.user) | Q(list_within__assigned_to=self.request.user))
 
     def perform_create(self, serializer):
         if self.request.user.is_admin:
             serializer.save()
         else:
-            if serializer.validated_data["list_within"].owned_by_id != self.request.user.id:
+            if (serializer.validated_data["list_within"].owned_by_id != self.request.user.id) and (
+                    serializer.validated_data["list_within"].assigned_to != self.request.user):
                 raise PermissionDenied({"list_within": "You are not an admin, you can only add item in your own list."})
             serializer.save()
