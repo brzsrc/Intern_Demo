@@ -8,6 +8,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         // Override point for customization after application launch.
+        application.applicationSupportsShakeToEdit = false   // ← 加这行:禁用系统 shake-to-undo
         return true
     }
 

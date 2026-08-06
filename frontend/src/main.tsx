@@ -24,7 +24,8 @@ import ConsoleLayout from "./components/layouts/ConsoleLayout";
 import {Users as ConsoleUsers} from "./components/console/Users";
 import {TodoLists} from "./components/console/TodoLists";
 import {TodoItems} from "./components/console/TodoItems";
-
+import { Capacitor } from '@capacitor/core';
+import { SafeArea } from 'capacitor-plugin-safe-area';
 
 const router = createBrowserRouter([
     // {path: "/dashboard", element: <PrivateRoute> <Dashboard/> </PrivateRoute>},
@@ -60,7 +61,31 @@ const router = createBrowserRouter([
     },
 ])
 
+async function initSafeArea() {
+  if (!Capacitor.isNativePlatform()) return;   // 浏览器直接跳过
+
+  const { insets } = await SafeArea.getSafeAreaInsets();
+  for (const [key, value] of Object.entries(insets)) {
+    document.documentElement.style.setProperty(
+      `--safe-area-inset-${key}`,
+      `${value}px`,
+    );
+  }
+
+  await SafeArea.removeAllListeners();
+  await SafeArea.addListener('safeAreaChanged', ({ insets }) => {
+    for (const [key, value] of Object.entries(insets)) {
+      document.documentElement.style.setProperty(
+        `--safe-area-inset-${key}`,
+        `${value}px`,
+      );
+    }
+  });
+}
+
 const queryClient = new QueryClient();
+
+initSafeArea();
 
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
     <React.StrictMode>

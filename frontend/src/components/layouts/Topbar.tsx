@@ -1,29 +1,30 @@
 import {
     Badge,
-    Box,
     Button,
-    Card,
-    Circle, CloseButton, Select,
+    Circle,
+    CloseButton,
     Dialog,
-    Flex, Field,
+    Flex,
     Icon,
-    Image, Input,
+    Image,
     Menu,
     Portal,
-    Square, Stack,
-    Text, Textarea
+    Square,
+    Text
 } from "@chakra-ui/react";
-import {ChevronDown, LogOut} from "lucide-react";
+import {ChevronDown} from "lucide-react";
 import {useAuth} from "../../contexts/AuthContext";
 import {useRef, useState} from "react";
-import {ColorModeButton} from "../ui/color-mode";
-import {NavMenu, NavMenuConsole} from "../console/Sidebar";
-import {deleteTodoItem, getAuth, updateAuth, updateAuthAvatar} from "../../queryOptions/queries";
+import {ColorModeButton, useColorMode} from "../ui/color-mode";
+import {getAuth, updateAuthAvatar} from "../../queryOptions/queries";
 import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
-import {roleProps, roles, todoListKeys, User, userKeys} from "../../common/types";
+import {roleProps, User, userKeys} from "../../common/types";
 import {EditProfileDialog} from "../../common/functions/user_functions";
 import {useLocation} from "react-router-dom";
-import {NavMenuDocs} from "../intern_docs/Sidebar";
+import {navItemsConsole, navItemsDocs, NavMenu} from "./Sidebar";
+import {hapticsImpactLight} from "../../common/functions/common";
+import {AnimatedLoading} from "../../contexts/AnimatedSplash";
+
 
 function UserCell({user}: { user: User }) {
 
@@ -85,7 +86,7 @@ function UserCell({user}: { user: User }) {
                                <Dialog.Title>Profile Picture</Dialog.Title>
                             </Dialog.Header>
                             <Dialog.Body>
-                                <Square size="400px" overflow="hidden">
+                                <Square size={{base: "300px", sm:"400px"}} overflow="hidden">
                                     <Image src={user.avatar ?? "/images/topbar/avatar.png"} alt="" aspectRatio="1"
                                            objectFit="cover"/>
                                 </Square>
@@ -124,12 +125,18 @@ export function Topbar() {
         queryFn: getAuth,
         enabled: !!auth.user,
     })
+    const { toggleColorMode } = useColorMode();
+
 
     console.log("user:", user)
+    const location = useLocation();
+    console.log(location.pathname)
+
 
     if (!auth.user) return null
     if (isPending) {
-        return <Text> Loading </Text>
+        // return <Text> Loading </Text>
+        return <AnimatedLoading loading={true}/>
     }
     if (isError) {
         return <Text> Sth went wrong </Text>
@@ -146,17 +153,17 @@ export function Topbar() {
         }
     }
 
-    const location = useLocation();
-    console.log(location.pathname)
-
 
     return (
         <Flex layerStyle="surface.topbar" h="72px" px="6" align="center" gap="3" justify="space-between">
             <Flex align="center">
                 {
-                    location.pathname.startsWith("/console") ? <NavMenuConsole/> : <NavMenuDocs/>
+                    location.pathname.startsWith("/console") ? <NavMenu navItems={navItemsConsole}/> : <NavMenu navItems={navItemsDocs}/>
                 }
-                <ColorModeButton/>
+                <ColorModeButton onClick={() => {
+                                 hapticsImpactLight();
+                                 toggleColorMode();
+                             }}/>
             </Flex>
 
             <Flex justify="flex-end" gap={3}>

@@ -57,6 +57,7 @@ MIDDLEWARE = [
 CORS_ALLOWED_ORIGINS = [
     "http://localhost",
     "http://localhost:5173",
+    "capacitor://localhost",
 ]
 CORS_ALLOW_HEADERS = [
     *default_headers,  # from corsheaders.defaults import default_headers

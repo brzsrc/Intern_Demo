@@ -10,6 +10,7 @@ import {LuEllipsisVertical, LuSearch} from "react-icons/lu";
 import {ReactNode, useState} from "react";
 import {roleProps, User, userKeys} from "../../common/types";
 import {AddUserDialog, EditProfileDialog, UserCellStatic} from "../../common/functions/user_functions";
+import {AnimatedLoading} from "../../contexts/AnimatedSplash";
 
 
 function getUserColumns(isAdmin: boolean, uid: string): TableColumnProps<User>[] {
@@ -66,7 +67,8 @@ function MenuCell({userId}: { userId: string }) {
     })
 
     if (isPending) {
-        return <Text> Loading </Text>
+        return <AnimatedLoading loading={true}/>
+        // return <Text> Loading </Text>
     }
     if (isError) {
         return <Text> Sth went wrong </Text>
@@ -154,7 +156,8 @@ export function Users() {
 
 
     if (isPendingUsers || isPendingUser) {
-        return <Text> Loading </Text>
+        // return <Text> Loading </Text>
+        return <AnimatedLoading loading={true}/>
     }
     if (isErrorUsers || isErrorUser) {
         return <Text> Sth went wrong </Text>

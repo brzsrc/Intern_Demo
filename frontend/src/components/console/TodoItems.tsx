@@ -10,6 +10,7 @@ import {LuEllipsisVertical} from "react-icons/lu";
 
 import {AddTodoItemDialog, EditTodoItemDialog} from "../../common/functions/todoItem_functions";
 import {formatDateTime, truncate} from "../../common/functions/common";
+import {AnimatedLoading} from "../../contexts/AnimatedSplash";
 
 
 interface TodoItemRow {
@@ -78,7 +79,7 @@ function MenuCell({item}: { item: TodoItem }) {
                     </Menu.Positioner>
                 </Portal>
             </Menu.Root>
-            <EditTodoItemDialog item={item} open={editOpen} onOpenChange={setEditOpen} />
+            <EditTodoItemDialog item={item} open={editOpen} onOpenChange={setEditOpen}/>
         </>
 
     )
@@ -119,7 +120,10 @@ export function TodoItems() {
     })
 
     const [search, setSearch] = useState("")
-    if (isPending) return <Text>Loading</Text>
+    if (isPending) {
+        // return <Text>Loading</Text>
+        return <AnimatedLoading loading={true}/>
+    }
     if (isError) return <Text>Sth went wrong</Text>
     // console.log("todoItems:", {data})
 
@@ -134,7 +138,7 @@ export function TodoItems() {
             <TodoItemLayout header={<HeaderCell title={list_name} addLabel={<AddTodoItemDialog listId={listId}/>}/>}
                             tableColumns={TodoItemColumns}
                             rows={filteredItems} searchBar={<SearchBar placeholder="search by item name" value={search}
-                                                  onChange={(s) => setSearch(s)}/>}/>
+                                                                       onChange={(s) => setSearch(s)}/>}/>
         </>
     )
 

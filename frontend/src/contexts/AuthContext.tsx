@@ -1,17 +1,21 @@
 import {createContext, ReactNode, useContext, useEffect, useRef, useState} from "react";
 import {appAuth} from "../firebase/firebase";
-import {createUserWithEmailAndPassword, GoogleAuthProvider, signInWithEmailAndPassword, signInWithPopup, User as FirebaseUser} from "firebase/auth";
+import {
+    createUserWithEmailAndPassword,
+    GoogleAuthProvider,
+    signInWithEmailAndPassword,
+    signInWithCredential,
+    signInWithPopup,
+    User as FirebaseUser
+} from "firebase/auth";
 import {updateProfile} from "firebase/auth";
-import {api} from "../apis/api";
-import {useQuery} from "@tanstack/react-query";
-import {getAuth} from "../queryOptions/queries";
-
+import {Capacitor} from '@capacitor/core';
+import {FirebaseAuthentication} from '@capacitor-firebase/authentication';
+import {SplashScreen} from '@capacitor/splash-screen';
+import {AnimatedSplash} from "./AnimatedSplash";
+import {ShakeToLogout} from "../plugins/device-shake/ShakeToLogout";
 
 type UserInfo = {
-    // fullName: string;
-    // email: string;
-    // id: string;
-    // avatar?: string;
     firebase_uid: string;
 }
 
@@ -32,11 +36,15 @@ const AuthCxt = createContext<AuthCxtComponents>(null);
 export function AuthProvider({children}: { children: ReactNode }) {
     useEffect(() => {
         const unsubscribe = appAuth.onAuthStateChanged(updateUser)
-        return unsubscribe
+        return () => {
+            unsubscribe();
+        }
     }, [])
+
 
     const [user, setUser] = useState<User>(null)
     const [loading, setLoading] = useState<boolean>(true)
+
     const signingUp = useRef(false);
 
     async function updateUser(firebaseUser: FirebaseUser | null) {
@@ -46,25 +54,12 @@ export function AuthProvider({children}: { children: ReactNode }) {
             setLoading(false)
             return null
         }
-
-        // const user = await getCurrentUser()
-        // if (!user) {
-        //     setUser(null)
-        // } else {
-        //     setUser({
-        //         email: user.email,
-        //         fullName: user.name,
-        //         id: user.id,
-        //         avatar: user.avatar,
-        //     })
-        // }
         setUser({firebase_uid: firebaseUser.uid})
         setLoading(false)
         return user
     }
 
     const isAuthenticated = !!user
-
 
 
     async function login(email: string, password: string) {
@@ -90,13 +85,24 @@ export function AuthProvider({children}: { children: ReactNode }) {
     }
 
     const googleProvider = new GoogleAuthProvider();
+
     async function signUpWithGoogle() {
-        await signInWithPopup(appAuth, googleProvider);
+        if (Capacitor.isNativePlatform()) {
+            const result = await FirebaseAuthentication.signInWithGoogle();
+            console.log('native result:', JSON.stringify(result)); // 先看 idToken 在不在
+            const credential = GoogleAuthProvider.credential(result.credential?.idToken);
+            await signInWithCredential(appAuth, credential);
+        } else {
+            await signInWithPopup(appAuth, googleProvider);
+        }
+
     }
 
 
     return (
         <AuthCxt.Provider value={{user, login, logout, signup, signUpWithGoogle, isAuthenticated}}>
+            <AnimatedSplash loading={loading} />
+            <ShakeToLogout/>
             {!loading && children}
         </AuthCxt.Provider>
     )

@@ -15,9 +15,9 @@ export default function ListView({products}: { products: ProductProps[] }) {
             {
                 products.map((product, index) => (
                     <GridItem key={product.id}>
-                        <Flex layerStyle="surface.card" direction={{sm: 'column', lg: 'row'}}
-                              justifyContent={{sm: "space-between", lg: "space-between"}} alignItems={{lg: "center"}} pl={4} pr={6} py={4}
-                        gap={{sm:4, lg:0}}>
+                        <Flex layerStyle="surface.card" direction={{base: 'column', lg: 'row'}}
+                              justifyContent={{base: "space-between", lg: "space-between"}} alignItems={{lg: "center"}} pl={4} pr={6} py={4}
+                        gap={{base:4, lg:0}}>
                             <Flex gap={4} alignItems="center">
                                 <Box position="relative" borderRadius="xl" overflow="hidden" w="68px" h="68px">
                                     <Image

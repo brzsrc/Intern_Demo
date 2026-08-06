@@ -12,6 +12,7 @@ import {
 } from "../../common/functions/todoList_functions";
 import {TodoList, todoListKeys, userKeys} from "../../common/types";
 import {formatDateTime} from "../../common/functions/common";
+import {AnimatedLoading} from "../../contexts/AnimatedSplash";
 
 
 const TodoListColumns: TableColumnProps<TodoList>[] = [
@@ -74,7 +75,10 @@ function MenuCell({list}: { list: TodoList }) {
     const [editOpen, setEditOpen] = useState(false)
     const [assignOpen, setAssignOpen] = useState(false)
 
-    if (isPending) return <Text>Loading</Text>
+    if (isPending){
+        // return <Text>Loading</Text>
+        return <AnimatedLoading loading={true}/>
+    }
     if (isError) return <Text>Sth went wrong</Text>
 
     const isAdmin = user.role === "admin"
@@ -171,7 +175,10 @@ export function TodoLists() {
 
     const [search, setSearch] = useState("")
 
-    if (listIsPending || userIsPending) return <Text>Loading</Text>
+    if (listIsPending || userIsPending) {
+        // return <Text>Loading</Text>
+        return <AnimatedLoading loading={true}/>
+    }
     if (listIsError || userIsError) return <Text>Sth went wrong</Text>
 
     const isAdmin = user.role === "admin"

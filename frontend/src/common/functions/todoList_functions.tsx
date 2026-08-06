@@ -15,6 +15,7 @@ import {
 } from "@chakra-ui/react";
 import {Plus} from "lucide-react";
 import {TodoList, todoListKeys, userKeys} from "../types";
+import {AnimatedLoading} from "../../contexts/AnimatedSplash";
 
 
 export function AddTodoListDialog({isAdmin}: { isAdmin: boolean }) {
@@ -43,7 +44,8 @@ export function AddTodoListDialog({isAdmin}: { isAdmin: boolean }) {
     })
 
     if (isPending) {
-        return <Text> Loading </Text>
+        // return <Text> Loading </Text>
+        return <AnimatedLoading loading={true}/>
     }
     if (isError) {
         return <Text> Sth went wrong </Text>
@@ -177,7 +179,8 @@ export function EditTodoListDialog({list, open, onOpenChange, isAdmin}: {
     })
 
     if (isPending) {
-        return <Text> Loading </Text>
+        // return <Text> Loading </Text>
+        return <AnimatedLoading loading={true}/>
     }
     if (isError) {
         return <Text> Sth went wrong </Text>
@@ -307,7 +310,8 @@ export function AssignTodoListDialog({list, open, onOpenChange}: {
     })
 
     if (isPending) {
-        return <Text> Loading </Text>
+        // return <Text> Loading </Text>
+        return <AnimatedLoading loading={true}/>
     }
     if (isError) {
         return <Text> Sth went wrong </Text>
